@@ -34,7 +34,7 @@ const state = page => page.evaluate(() => ({
 test('a guest who scans the invite joins the same moment of the same break', async ({ browser, baseURL }) => {
   const host = await openPage(browser, baseURL, T0);
   const url = await lightAndInvite(host);
-  expect(url).toMatch(/#join=1\.\d+\.[0-9a-z]+\.\d+\.[0-9a-z]{2}$/);
+  expect(url).toMatch(/#join=2\.\d+\.[0-9a-z]+\.\d+\.[0-9a-z]{2}\.original$/);
 
   // Koral scans 90 seconds later.
   await host.clock.fastForward(90000);
