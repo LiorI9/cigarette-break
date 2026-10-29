@@ -7,31 +7,214 @@
 <title>הפסקת סיגריה</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&family=Suez+One&display=swap">
+<script>
+// Fonts per look, loaded only for the look in use. The saved look (or the inviter's,
+// when opening a join link) is applied here, before first paint, so nothing flashes.
+window.LOOK_FONTS = {
+  original: 'https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&family=Suez+One&display=swap',
+  foundation: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;600;700&family=Karantina:wght@400;700&display=swap',
+  burrow: 'https://fonts.googleapis.com/css2?family=David+Libre:wght@400;700&family=Frank+Ruhl+Libre:wght@500;700;900&display=swap'
+};
+(function () {
+  var known = function (id) { return Object.prototype.hasOwnProperty.call(LOOK_FONTS, id); };
+  var look = 'original';
+  try { var saved = JSON.parse(localStorage.getItem('break.look')); if (known(saved)) look = saved; } catch (e) {}
+  var m = /^#join=2\.\d+\.[0-9a-z]+\.\d+\.[0-9a-z]{2}\.([a-z]+)$/.exec(location.hash);
+  if (m) look = known(m[1]) ? m[1] : 'original';
+  document.documentElement.setAttribute('data-look', look);
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.id = 'lookFonts';
+  link.href = LOOK_FONTS[look];
+  document.head.appendChild(link);
+})();
+</script>
 <style>
-/* Layout: one narrow poster column — masthead, smoking stage, meter, topic card, pack warning */
-:root {
-  --ground: #1E4D4A;
-  --ground-deep: #143836;
-  --paper: #F2E6CC;
-  --paper-shade: #D9C9A6;
-  --mustard: #E3A631;
-  --tomato: #D4472C;
-  --ink: #2B1D16;
+/* Layout: one narrow poster column — masthead, look picker, smoking stage, meter, topic card, pack warning.
+   A look is only a set of the tokens below; structure and behaviour never change between looks.
+   Tokens sit on [data-look] (not only :root) so each picker swatch can wear its own look. */
+:root, [data-look="original"] {
+  /* Ground and text on it */
+  --bg: #1E4D4A;
+  --bg-deep: #143836;
+  --dots: rgba(0,0,0,.2);
+  --vignette: rgba(0,0,0,.35);
+  --on-bg: #F2E6CC;
+  --on-bg-muted: #D9C9A6;
+  /* Card */
+  --card: #F2E6CC;
+  --on-card: #2B1D16;
+  --on-card-muted: #6E5E50;
+  --rule: rgba(43,29,22,.25);
+  --line: #2B1D16;
+  --panel: #FFFAF0;
+  --on-panel-muted: #5C4B3E;
+  --msg: #1E4D4A;
+  /* Accents and buttons */
+  --accent: #E3A631;
+  --on-accent: #2B1D16;
+  --accent-2: #B93A22;
+  --on-accent-2: #F7EEDB;
+  --btn: #1E4D4A;
+  --on-btn: #F2E6CC;
+  /* Cigarette, match and smoke */
+  --cig-hi: #FFFAF0;
+  --cig-mid: #EFE6D4;
+  --cig-lo: #D6CAB2;
+  --tobacco: #8A5A33;
+  --filter: #D4843A;
+  --filter-dot: rgba(120,50,10,.45);
+  --filter-band: #E9C35A;
+  --ash-hi: #C7C0B3;
+  --ash-mid: #8F887D;
+  --ash-lo: #6B655C;
+  --ember-core: #FFF1B0;
+  --ember-mid: #FFB347;
+  --ember-edge: #E2461F;
+  --ember-glow: rgba(255,110,40,.65);
+  --ember-peak: rgba(255,120,40,.8);
+  --strip-a: #6B3A24;
+  --strip-b: #8F4B2E;
+  --match-head: #9A2C1B;
+  --match-spent: #2A2420;
+  --match-stick: #EBCB8E;
+  --match-edge: #B89458;
+  --flame-core: #FFF6C8;
+  --flame-mid: #FFC04A;
+  --flame-edge: rgba(226,70,31,.85);
+  --smoke: 242,230,204;
+  --qr-bg: #FFFAF0;
+  --qr-ink: #2B1D16;
+  /* Type */
   --display: "Suez One", "Frank Ruhl Libre", Georgia, serif;
+  --display-weight: 400;
   --body: "Assistant", "Arial Hebrew", Arial, sans-serif;
   --label: "Secular One", "Assistant", Arial, sans-serif;
+  --label-weight: 400;
   color-scheme: dark;
-  direction: rtl;
 }
+/* יסודות — inspired by Asimov: deep space, terminal lines, the cigarette as an energy cell */
+[data-look="foundation"] {
+  --bg: #0B1533;
+  --bg-deep: #070E26;
+  --dots: rgba(120,170,255,.12);
+  --vignette: rgba(0,0,10,.5);
+  --on-bg: #DCE8FF;
+  --on-bg-muted: #9FB4DD;
+  --card: #13224D;
+  --on-card: #E6EEFF;
+  --on-card-muted: #9CB0D8;
+  --rule: rgba(92,200,255,.3);
+  --line: #5CC8FF;
+  --panel: #0E1B40;
+  --on-panel-muted: #A9BCE0;
+  --msg: #7FD4FF;
+  --accent: #FFC75A;
+  --on-accent: #0B1533;
+  --accent-2: #2EC4B6;
+  --on-accent-2: #04121F;
+  --btn: #1D3A80;
+  --on-btn: #E6EEFF;
+  --cig-hi: #F4F8FF;
+  --cig-mid: #DCE5F5;
+  --cig-lo: #B7C4DE;
+  --tobacco: #3A4E7A;
+  --filter: #8FA3C8;
+  --filter-dot: rgba(20,40,90,.45);
+  --filter-band: #5CC8FF;
+  --ash-hi: #B9C3D9;
+  --ash-mid: #8390AD;
+  --ash-lo: #5D6886;
+  --ember-core: #E8FFFF;
+  --ember-mid: #7FE7FF;
+  --ember-edge: #1E8BFF;
+  --ember-glow: rgba(80,190,255,.65);
+  --ember-peak: rgba(90,200,255,.85);
+  --strip-a: #24345E;
+  --strip-b: #33467A;
+  --match-head: #C2352B;
+  --match-spent: #1A1F2E;
+  --match-stick: #D9E2F2;
+  --match-edge: #8D9BB8;
+  --flame-core: #F0FFFF;
+  --flame-mid: #8FE9FF;
+  --flame-edge: rgba(30,139,255,.85);
+  --smoke: 200,225,255;
+  --qr-bg: #E6EEFF;
+  --qr-ink: #0B1533;
+  --display: "Karantina", "IBM Plex Sans Hebrew", "Arial Hebrew", sans-serif;
+  --display-weight: 700;
+  --body: "IBM Plex Sans Hebrew", "Arial Hebrew", Arial, sans-serif;
+  --label: "IBM Plex Sans Hebrew", "Arial Hebrew", Arial, sans-serif;
+  --label-weight: 600;
+  color-scheme: dark;
+}
+/* מחילה — inspired by The Hobbit: parchment, shire green, brown ink, a little gold */
+[data-look="burrow"] {
+  --bg: #2F4A2A;
+  --bg-deep: #223820;
+  --dots: rgba(0,0,0,.18);
+  --vignette: rgba(20,12,0,.4);
+  --on-bg: #F1E4C3;
+  --on-bg-muted: #D2C49E;
+  --card: #F3E6C4;
+  --on-card: #3B2814;
+  --on-card-muted: #6F5A3E;
+  --rule: rgba(59,40,20,.28);
+  --line: #3B2814;
+  --panel: #FBF3DC;
+  --on-panel-muted: #5E4A30;
+  --msg: #2F4A2A;
+  --accent: #D9A441;
+  --on-accent: #3B2814;
+  --accent-2: #8C3B1F;
+  --on-accent-2: #F8EED6;
+  --btn: #3F5E2E;
+  --on-btn: #F8EED6;
+  --cig-hi: #FFF8E6;
+  --cig-mid: #F1E3C2;
+  --cig-lo: #D8C49A;
+  --tobacco: #6B4423;
+  --filter: #A8743F;
+  --filter-dot: rgba(80,40,10,.45);
+  --filter-band: #D9A441;
+  --ash-hi: #C9C0AE;
+  --ash-mid: #928874;
+  --ash-lo: #6C6352;
+  --ember-core: #FFF1B0;
+  --ember-mid: #FFB347;
+  --ember-edge: #D2461F;
+  --ember-glow: rgba(255,120,40,.6);
+  --ember-peak: rgba(255,130,40,.8);
+  --strip-a: #5A3A1E;
+  --strip-b: #7A5230;
+  --match-head: #7E2A16;
+  --match-spent: #2A2018;
+  --match-stick: #E6C98F;
+  --match-edge: #A88755;
+  --flame-core: #FFF6C8;
+  --flame-mid: #FFC04A;
+  --flame-edge: rgba(210,70,31,.85);
+  --smoke: 235,225,200;
+  --qr-bg: #FBF3DC;
+  --qr-ink: #3B2814;
+  --display: "Frank Ruhl Libre", "David Libre", Georgia, serif;
+  --display-weight: 900;
+  --body: "David Libre", "Frank Ruhl Libre", Georgia, serif;
+  --label: "Frank Ruhl Libre", "David Libre", Georgia, serif;
+  --label-weight: 700;
+  color-scheme: dark;
+}
+:root { direction: rtl; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { min-height: 100%; }
 body {
-  background-color: var(--ground);
-  background-image: radial-gradient(rgba(0,0,0,.2) 1px, transparent 1.3px);
+  margin: 0;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dots) 1px, transparent 1.3px);
   background-size: 6px 6px;
-  color: var(--paper);
+  color: var(--on-bg);
   font-family: var(--body);
   font-size: 17px;
   line-height: 1.55;
@@ -50,34 +233,59 @@ body {
 /* Masthead */
 .mast { display: flex; flex-direction: column; gap: 6px; }
 .eyebrow {
-  font-family: var(--label);
+  font-family: var(--label); font-weight: var(--label-weight);
   font-size: 14px;
   letter-spacing: .06em;
-  color: var(--paper-shade);
+  color: var(--on-bg-muted);
   display: flex; gap: 10px; align-items: center;
 }
-.eyebrow::before, .eyebrow::after { content: ""; height: 2px; flex: 1; background: var(--paper-shade); opacity: .5; }
+.eyebrow::before, .eyebrow::after { content: ""; height: 2px; flex: 1; background: var(--on-bg-muted); opacity: .5; }
 h1 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 400;
+  font-weight: var(--display-weight);
   font-size: clamp(46px, 12vw, 80px);
   line-height: 1.05;
-  color: var(--mustard);
-  text-shadow: 4px 4px 0 var(--tomato), 7px 7px 0 var(--ink);
+  color: var(--accent);
+  text-shadow: 4px 4px 0 var(--accent-2), 7px 7px 0 var(--line);
   text-align: center;
   text-wrap: balance;
 }
 .sub { margin: 4px 0 0; text-align: center; font-size: 19px; font-weight: 600; text-wrap: balance; }
 
+/* Look picker: a row of cigarette packs, each wearing its own look */
+.looks { display: flex; gap: 12px; overflow-x: auto; padding: 4px 4px 10px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.looks > :first-child { margin-inline-start: auto; }
+.looks > :last-child { margin-inline-end: auto; }
+.pack {
+  flex: none;
+  scroll-snap-align: center;
+  width: 96px;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  padding: 8px 8px 7px;
+  font-family: inherit;
+  font-size: 14px; font-weight: 700;
+  color: var(--on-bg);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 var(--line);
+  cursor: pointer;
+  transition: transform .15s;
+}
+.pack::before { content: ""; height: 10px; border-radius: 2px; background: var(--accent-2); }
+.pack-cig { height: 8px; border-radius: 2px; background: linear-gradient(90deg, var(--cig-mid) 0 72%, var(--filter) 72%); direction: ltr; }
+.pack[aria-pressed="true"] { transform: translateY(-3px); outline: 3px solid var(--accent); outline-offset: 2px; }
+.pack:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
 /* Stage */
 .stage {
   position: relative;
   height: 290px;
-  background: var(--ground-deep);
-  border: 3px solid var(--ink);
+  background: var(--bg-deep);
+  border: 3px solid var(--line);
   border-radius: 8px;
-  box-shadow: 6px 6px 0 var(--ink), inset 0 0 60px rgba(0,0,0,.35);
+  box-shadow: 6px 6px 0 var(--line), inset 0 0 60px var(--vignette);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -94,52 +302,52 @@ h1 {
   z-index: 2;
   outline: none;
 }
-.cig:focus-visible { outline: 3px solid var(--mustard); outline-offset: 8px; border-radius: 4px; }
+.cig:focus-visible { outline: 3px solid var(--accent); outline-offset: 8px; border-radius: 4px; }
 .paper {
   position: absolute; top: 0; bottom: 0; left: 0; width: 74%;
-  background: linear-gradient(#fffaf0, #efe6d4 55%, #d6cab2);
+  background: linear-gradient(var(--cig-hi), var(--cig-mid) 55%, var(--cig-lo));
   border-radius: 2px 0 0 2px;
 }
 .paper::before {
   content: ""; position: absolute; left: 0; top: 2px; bottom: 2px; width: 4px;
-  background: #8a5a33; border-radius: 2px 0 0 2px;
+  background: var(--tobacco); border-radius: 2px 0 0 2px;
 }
 .filter {
   position: absolute; top: 0; bottom: 0; right: 0; width: 26%;
-  background-color: #D4843A;
-  background-image: radial-gradient(rgba(120,50,10,.45) 1.2px, transparent 1.6px), linear-gradient(rgba(255,255,255,.25), transparent 50%, rgba(0,0,0,.18));
+  background-color: var(--filter);
+  background-image: radial-gradient(var(--filter-dot) 1.2px, transparent 1.6px), linear-gradient(rgba(255,255,255,.25), transparent 50%, rgba(0,0,0,.18));
   background-size: 5px 4px, 100% 100%;
-  border-left: 3px solid #E9C35A;
+  border-left: 3px solid var(--filter-band);
   border-radius: 0 5px 5px 0;
 }
 .ash, .ashbit {
   position: absolute; top: 1px; bottom: 1px; left: 0; width: 0;
-  background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 5px), linear-gradient(#c7c0b3, #8f887d 60%, #6b655c);
+  background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 5px), linear-gradient(var(--ash-hi), var(--ash-mid) 60%, var(--ash-lo));
   border-radius: 4px 0 0 4px;
 }
 .ember {
   position: absolute; top: -1px; bottom: -1px; left: 0; width: 7px; margin-left: -4px;
   border-radius: 3px;
-  background: radial-gradient(circle at 50% 50%, #fff1b0, #ffb347 40%, #e2461f 80%);
-  box-shadow: 0 0 14px 5px rgba(255,110,40,.65);
+  background: radial-gradient(circle at 50% 50%, var(--ember-core), var(--ember-mid) 40%, var(--ember-edge) 80%);
+  box-shadow: 0 0 14px 5px var(--ember-glow);
   opacity: 0;
   transition: opacity .8s;
 }
 .lit .ember { opacity: 1; animation: glow 1.8s ease-in-out infinite; }
-@keyframes glow { 50% { box-shadow: 0 0 22px 8px rgba(255,120,40,.8); filter: brightness(1.2); } }
+@keyframes glow { 50% { box-shadow: 0 0 22px 8px var(--ember-peak); filter: brightness(1.2); } }
 
 .box {
   position: absolute; left: 50%; top: 74%;
   width: 168px; height: 40px;
-  background: var(--mustard);
-  border: 3px solid var(--ink);
+  background: var(--accent);
+  border: 3px solid var(--line);
   border-radius: 3px;
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--label); font-size: 15px; color: var(--ink);
+  font-family: var(--label); font-weight: var(--label-weight); font-size: 15px; color: var(--on-accent);
   letter-spacing: .04em;
   z-index: 1;
 }
-.box::before { content: ""; position: absolute; inset: auto 0 -3px; height: 8px; background: repeating-linear-gradient(90deg, #6b3a24 0 3px, #8f4b2e 3px 6px); border-top: 2px solid var(--ink); }
+.box::before { content: ""; position: absolute; inset: auto 0 -3px; height: 8px; background: repeating-linear-gradient(90deg, var(--strip-a) 0 3px, var(--strip-b) 3px 6px); border-top: 2px solid var(--line); }
 .match {
   position: absolute; left: calc(50% + 14px); top: calc(74% - 16px);
   width: 136px; height: 14px;
@@ -151,138 +359,138 @@ h1 {
   transition: transform .55s cubic-bezier(.3,1.4,.5,1), opacity .4s;
 }
 .match.dragging { transition: none; cursor: grabbing; }
-.match .head { width: 18px; height: 14px; border-radius: 8px 4px 4px 8px; background: #9a2c1b; box-shadow: inset -3px -3px 0 rgba(0,0,0,.25); flex: none; }
-.match .stick { flex: 1; height: 7px; background: #EBCB8E; border: 1px solid #b89458; border-left: 0; }
+.match .head { width: 18px; height: 14px; border-radius: 8px 4px 4px 8px; background: var(--match-head); box-shadow: inset -3px -3px 0 rgba(0,0,0,.25); flex: none; }
+.match .stick { flex: 1; height: 7px; background: var(--match-stick); border: 1px solid var(--match-edge); border-left: 0; }
 .match .flame {
   position: absolute; left: -6px; top: -30px; width: 20px; height: 32px;
   border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
-  background: radial-gradient(ellipse at 50% 75%, #fff6c8 0 20%, #ffc04a 45%, rgba(226,70,31,.85) 75%, transparent 78%);
+  background: radial-gradient(ellipse at 50% 75%, var(--flame-core) 0 20%, var(--flame-mid) 45%, var(--flame-edge) 75%, transparent 78%);
   transform-origin: 50% 100%;
   opacity: 0; transition: opacity .2s;
   pointer-events: none;
 }
 .match.struck .flame { opacity: 1; animation: flicker .25s ease-in-out infinite alternate; }
 @keyframes flicker { from { transform: scale(1, 1) rotate(-3deg); } to { transform: scale(.92, 1.08) rotate(3deg); } }
-.match.spent .head { background: #2a2420; }
+.match.spent .head { background: var(--match-spent); }
 .match.spent { opacity: .0; }
 .hint {
   position: absolute; left: 0; right: 0; bottom: 8px; margin: 0;
   padding-inline: 12px;
   text-align: center;
-  font-family: var(--label); font-size: 14px; color: var(--paper-shade);
+  font-family: var(--label); font-weight: var(--label-weight); font-size: 14px; color: var(--on-bg-muted);
   z-index: 5;
 }
 
 /* Meter */
 .meter {
   display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
-  font-family: var(--label); color: var(--paper-shade); font-size: 15px;
+  font-family: var(--label); font-weight: var(--label-weight); color: var(--on-bg-muted); font-size: 15px;
   padding-inline: 4px;
 }
-.clock { font-family: var(--display); color: var(--mustard); font-size: 26px; font-variant-numeric: tabular-nums; direction: ltr; }
+.clock { font-family: var(--display); font-weight: var(--display-weight); color: var(--accent); font-size: 26px; font-variant-numeric: tabular-nums; direction: ltr; }
 
 /* Topic card */
 .card {
-  background: var(--paper);
-  color: var(--ink);
-  border: 3px solid var(--ink);
+  background: var(--card);
+  color: var(--on-card);
+  border: 3px solid var(--line);
   border-radius: 4px;
   padding: 22px clamp(18px, 4vw, 30px) 24px;
-  box-shadow: 7px 7px 0 var(--ink);
+  box-shadow: 7px 7px 0 var(--line);
   transform: rotate(-.5deg);
   display: flex; flex-direction: column; gap: 14px;
 }
 .card > div { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
 .tag {
   display: inline-block;
-  font-family: var(--label); font-size: 14px; letter-spacing: .05em;
-  background: var(--tomato); color: var(--paper);
+  font-family: var(--label); font-weight: var(--label-weight); font-size: 14px; letter-spacing: .05em;
+  background: var(--accent-2); color: var(--on-accent-2);
   padding: 2px 12px; border-radius: 2px;
   transform: rotate(1.2deg);
 }
 .card p { margin: 0; max-width: 60ch; }
 .card h2 {
   margin: 0;
-  font-family: var(--display); font-weight: 400;
+  font-family: var(--display); font-weight: var(--display-weight);
   font-size: clamp(25px, 5.6vw, 34px); line-height: 1.25;
   text-wrap: balance;
 }
 .follow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; }
 .follow li {
   display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start;
-  border-top: 2px dashed rgba(43,29,22,.25);
+  border-top: 2px dashed var(--rule);
   padding-top: 10px;
   min-width: 0;
 }
 .follow .n {
   width: 30px; height: 30px; border-radius: 50%;
-  background: var(--mustard); border: 2px solid var(--ink);
+  background: var(--accent); color: var(--on-accent); border: 2px solid var(--line);
   display: grid; place-items: center;
-  font-family: var(--label); font-size: 15px;
+  font-family: var(--label); font-weight: var(--label-weight); font-size: 15px;
 }
 .follow .q { font-size: 18px; font-weight: 600; padding-top: 2px; }
-.follow li.locked .n { background: transparent; border-style: dashed; color: rgba(43,29,22,.5); }
-.follow li.locked .q { font-weight: 400; color: rgba(43,29,22,.55); font-style: italic; }
+.follow li.locked .n { background: transparent; border-style: dashed; color: var(--on-card-muted); }
+.follow li.locked .q { font-weight: 400; color: var(--on-card-muted); font-style: italic; }
 .follow li.on .q { animation: inkin .9s ease-out; }
 @keyframes inkin { from { opacity: 0; filter: blur(3px); } }
 
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .btn {
-  font-family: var(--label); font-size: 16px;
-  background: var(--ground); color: var(--paper);
-  border: 2px solid var(--ink); border-radius: 999px;
+  font-family: var(--label); font-weight: var(--label-weight); font-size: 16px;
+  background: var(--btn); color: var(--on-btn);
+  border: 2px solid var(--line); border-radius: 999px;
   padding: 8px 18px;
-  box-shadow: 3px 3px 0 var(--ink);
+  box-shadow: 3px 3px 0 var(--line);
   cursor: pointer; text-decoration: none;
   transition: transform .12s, box-shadow .12s;
 }
-.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
-.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
-.btn:focus-visible { outline: 3px solid var(--mustard); outline-offset: 3px; }
-.btn.primary { background: var(--tomato); }
-.msg { font-family: var(--label); font-size: 14px; color: var(--ground); }
-#copyFallback { width: 100%; min-height: 120px; font-family: var(--body); font-size: 15px; color: var(--ink); background: #fffaf0; border: 2px solid var(--ink); border-radius: 4px; padding: 8px; color-scheme: light; }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--line); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--line); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.btn.primary { background: var(--accent-2); color: var(--on-accent-2); }
+.msg { font-family: var(--label); font-weight: var(--label-weight); font-size: 14px; color: var(--msg); }
+#copyFallback { width: 100%; min-height: 120px; font-family: var(--body); font-size: 15px; color: var(--on-card); background: var(--panel); border: 2px solid var(--line); border-radius: 4px; padding: 8px; }
 .done {
   width: 100%;
-  border: 2px solid var(--ink); border-radius: 4px;
-  background: var(--mustard);
+  border: 2px solid var(--line); border-radius: 4px;
+  background: var(--accent); color: var(--on-accent);
   padding: 12px 14px;
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
 }
-.done strong { font-family: var(--display); font-weight: 400; font-size: 20px; }
+.done strong { font-family: var(--display); font-weight: var(--display-weight); font-size: 20px; }
 .note {
   width: 100%;
-  border: 2px dashed var(--ink); border-radius: 4px;
+  border: 2px dashed var(--line); border-radius: 4px;
   padding: 10px 14px;
   font-weight: 600;
 }
 .invite {
   width: 100%;
-  border: 3px solid var(--ink); border-radius: 4px;
-  background: #fffaf0;
+  border: 3px solid var(--line); border-radius: 4px;
+  background: var(--panel);
   padding: 18px 16px;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   text-align: center;
 }
-.invite strong { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: 1.2; }
-.invite p { color: rgba(43,29,22,.75); }
-#qr { width: min(260px, 100%); height: auto; image-rendering: pixelated; border: 2px solid var(--ink); }
+.invite strong { font-family: var(--display); font-weight: var(--display-weight); font-size: 22px; line-height: 1.2; }
+.invite p { color: var(--on-panel-muted); }
+#qr { width: min(260px, 100%); height: auto; image-rendering: pixelated; border: 2px solid var(--line); }
 
 /* Pack warning */
 .warning {
   margin: 6px 0 0;
-  background: var(--paper); color: var(--ink);
-  border: 4px solid var(--ink);
-  outline: 2px solid var(--paper); outline-offset: -9px;
+  background: var(--card); color: var(--on-card);
+  border: 4px solid var(--line);
+  outline: 2px solid var(--card); outline-offset: -9px;
   padding: 16px 18px;
   font-weight: 700; font-size: 15px; line-height: 1.45;
 }
-.warning b { font-family: var(--label); font-weight: 400; display: block; font-size: 16px; letter-spacing: .04em; }
-footer { text-align: center; font-family: var(--label); font-size: 13px; color: var(--paper-shade); opacity: .8; }
+.warning b { font-family: var(--label); font-weight: var(--label-weight); display: block; font-size: 16px; letter-spacing: .04em; }
+footer { text-align: center; font-family: var(--label); font-weight: var(--label-weight); font-size: 13px; color: var(--on-bg-muted); }
 
 @media (prefers-reduced-motion: reduce) {
   .lit .ember, .match.struck .flame, .follow li.on .q { animation: none; }
-  .match { transition: none; }
+  .match, .pack { transition: none; }
 }
 </style>
 </head>
@@ -294,6 +502,8 @@ footer { text-align: center; font-family: var(--label); font-size: 13px; color: 
     <h1>הפסקת סיגריה</h1>
     <p class="sub">למי שלא מעשן, אבל לא מוותר על ההפסקה</p>
   </header>
+
+  <nav class="looks" id="looks" aria-label="סגנון עיצוב"></nav>
 
   <section class="stage" id="stage" aria-label="הסיגריה">
     <canvas id="smoke" aria-hidden="true"></canvas>
@@ -481,9 +691,50 @@ function markUsed(i) {
   store.set('used', used);
 }
 
+/* Looks: a look is only a set of CSS tokens (see [data-look] in the stylesheet).
+   The saved look is a personal preference. During a joined break the inviter's look
+   is shown without touching that preference, and "סיגריה חדשה" brings it back. */
+const LOOKS = [
+  { id: 'original', name: 'מקורי' },
+  { id: 'foundation', name: 'יסודות' },
+  { id: 'burrow', name: 'מחילה' },
+];
+let smokeRGB = '242,230,204';
+
+const knownLook = id => LOOKS.some(l => l.id === id);
+const savedLook = () => { const id = store.get('look', 'original'); return knownLook(id) ? id : 'original'; };
+const currentLook = () => document.documentElement.getAttribute('data-look');
+
+function applyLook(id, persist) {
+  if (!knownLook(id)) id = 'original';
+  if (persist) store.set('look', id);
+  if (currentLook() !== id) {
+    document.documentElement.setAttribute('data-look', id);
+    $('lookFonts').href = LOOK_FONTS[id];
+  }
+  smokeRGB = getComputedStyle(document.documentElement).getPropertyValue('--smoke').trim() || smokeRGB;
+  for (const b of $('looks').children) b.setAttribute('aria-pressed', String(b.dataset.look === id));
+  if (!$('invite').hidden) showInvite();
+}
+
+function renderLooks() {
+  const nav = $('looks');
+  for (const { id, name } of LOOKS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pack';
+    b.dataset.look = id;
+    b.innerHTML = '<span class="pack-cig"></span><span class="pack-name"></span>';
+    b.querySelector('.pack-name').textContent = name;
+    b.addEventListener('click', () => applyLook(id, true));
+    nav.appendChild(b);
+  }
+}
+
 /* Shared break: everything a guest needs travels inside the QR link, no server involved.
-   #join=<format>.<topic>.<start, base36 ms>.<duration s>.<topic checksum> */
-const JOIN_FORMAT = 1;
+   #join=<format>.<topic>.<start, base36 ms>.<duration s>.<topic checksum>[.<look>]
+   Format 1 has no look (the guest keeps their own); format 2 carries the inviter's look. */
+const JOIN_FORMAT = 2;
 const MAX_CLOCK_SKEW = 60000;
 
 function topicCheck(i) {
@@ -493,16 +744,19 @@ function topicCheck(i) {
 }
 
 function joinUrl() {
-  const code = [JOIN_FORMAT, S.topic, S.start.toString(36), S.dur / 1000, topicCheck(S.topic)].join('.');
+  const code = [JOIN_FORMAT, S.topic, S.start.toString(36), S.dur / 1000, topicCheck(S.topic), currentLook()].join('.');
   return location.origin + location.pathname + '#join=' + code;
 }
 
 function parseJoin(hash) {
-  const m = /^#join=(\d+)\.(\d+)\.([0-9a-z]+)\.(\d+)\.([0-9a-z]{2})$/.exec(hash || '');
-  if (!m || +m[1] !== JOIN_FORMAT) return null;
+  const m = /^#join=(\d+)\.(\d+)\.([0-9a-z]+)\.(\d+)\.([0-9a-z]{2})(?:\.([a-z]+))?$/.exec(hash || '');
+  if (!m) return null;
+  const format = +m[1];
+  if (!(format === 1 && !m[6]) && !(format === 2 && m[6])) return null;
   const topic = +m[2], start = parseInt(m[3], 36), dur = +m[4] * 1000;
   if (!TOPICS[topic] || topicCheck(topic) !== m[5] || dur < 180000 || dur > 300000) return null;
-  return { topic, start, dur };
+  const look = format === 2 ? (knownLook(m[6]) ? m[6] : 'original') : null;
+  return { topic, start, dur, look };
 }
 
 function handleJoin() {
@@ -521,6 +775,7 @@ function handleJoin() {
     return;
   }
   reset();
+  if (j.look) applyLook(j.look, false);
   light(j);
 }
 
@@ -533,9 +788,10 @@ function showInvite() {
   const cell = Math.max(4, Math.floor(264 / size));
   const c = $('qr'), g = c.getContext('2d');
   c.width = c.height = size * cell;
-  g.fillStyle = '#fffaf0';
+  const css = getComputedStyle(document.documentElement);
+  g.fillStyle = css.getPropertyValue('--qr-bg').trim() || '#fffaf0';
   g.fillRect(0, 0, c.width, c.height);
-  g.fillStyle = '#2B1D16';
+  g.fillStyle = css.getPropertyValue('--qr-ink').trim() || '#2B1D16';
   for (let r = 0; r < n; r++)
     for (let k = 0; k < n; k++)
       if (qr.isDark(r, k)) g.fillRect((k + quiet) * cell, (r + quiet) * cell, cell, cell);
@@ -647,6 +903,7 @@ function finish() {
 
 function reset() {
   S.mode = 'idle'; S.lastDrop = 0; S.b = 0;
+  applyLook(savedLook(), false);
   setCig(0);
   cig.setAttribute('aria-label', 'להדליק את הסיגריה');
   match.classList.remove('spent', 'struck');
@@ -739,8 +996,8 @@ function frame(now) {
     const k = p.life / p.max;
     const alpha = p.a * (1 - k) * Math.min(1, p.life * 3);
     const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-    grd.addColorStop(0, 'rgba(242,230,204,' + alpha + ')');
-    grd.addColorStop(1, 'rgba(242,230,204,0)');
+    grd.addColorStop(0, 'rgba(' + smokeRGB + ',' + alpha + ')');
+    grd.addColorStop(1, 'rgba(' + smokeRGB + ',0)');
     ctx.fillStyle = grd;
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
   }
@@ -805,6 +1062,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+renderLooks();
 reset();
 handleJoin();
 </script>
