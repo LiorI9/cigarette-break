@@ -47,7 +47,7 @@ jobs:
       - name: Collect site files
         run: |
           mkdir _site
-          cp index.html .nojekyll _site/
+          cp -r index.html .nojekyll vendor _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

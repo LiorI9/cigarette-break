@@ -250,6 +250,23 @@ h1 {
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
 }
 .done strong { font-family: var(--display); font-weight: 400; font-size: 20px; }
+.note {
+  width: 100%;
+  border: 2px dashed var(--ink); border-radius: 4px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+.invite {
+  width: 100%;
+  border: 3px solid var(--ink); border-radius: 4px;
+  background: #fffaf0;
+  padding: 18px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  text-align: center;
+}
+.invite strong { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: 1.2; }
+.invite p { color: rgba(43,29,22,.75); }
+#qr { width: min(260px, 100%); height: auto; image-rendering: pixelated; border: 2px solid var(--ink); }
 
 /* Pack warning */
 .warning {
@@ -299,11 +316,12 @@ footer { text-align: center; font-family: var(--label); font-size: 13px; color: 
   <article class="card" id="card">
     <div id="idleView">
       <span class="tag">איך זה עובד</span>
+      <p class="note" id="joinMsg" role="status" hidden></p>
       <p>מדליקים את הסיגריה ומקבלים נושא לשיחה. כל סיגריה נשרפת בקצב משלה, בין 3 ל-5 דקות, ובדרך עולות שלוש שאלות המשך כדי שהשיחה לא תיתקע.</p>
       <button class="btn primary" id="lightBtn" type="button">להדליק</button>
     </div>
     <div id="litView" hidden>
-      <span class="tag">נושא לשיחה</span>
+      <span class="tag" id="litTag">נושא לשיחה</span>
       <h2 id="topic"></h2>
       <ol class="follow" id="follow"></ol>
       <div class="done" id="doneBar" hidden>
@@ -311,11 +329,18 @@ footer { text-align: center; font-family: var(--label); font-size: 13px; color: 
         <button class="btn primary" id="againBtn" type="button">סיגריה חדשה</button>
       </div>
       <div class="row">
+        <button class="btn primary" id="inviteBtn" type="button" aria-expanded="false" aria-controls="invite">להזמין להפסקה</button>
         <button class="btn" id="copyBtn" type="button">העתקת הנושא</button>
         <a class="btn" id="waBtn" href="https://wa.me/" target="_blank" rel="noopener">שליחה בוואטסאפ</a>
         <span class="msg" id="copyMsg" aria-live="polite"></span>
       </div>
       <textarea id="copyFallback" hidden readonly aria-label="טקסט להעתקה"></textarea>
+      <div class="invite" id="invite" hidden>
+        <strong>מצטרפים מהטלפון שלהם</strong>
+        <canvas id="qr" width="264" height="264" role="img" aria-label="קוד QR להצטרפות להפסקה"></canvas>
+        <p>סורקים עם המצלמה, והסיגריה שלהם נדלקת באותו רגע בדיוק, עם אותו נושא. כל מי שהצטרף יכול להזמין גם את הבא בתור.</p>
+        <button class="btn" id="closeInvite" type="button">סגירה</button>
+      </div>
     </div>
   </article>
 
@@ -323,6 +348,7 @@ footer { text-align: center; font-family: var(--label); font-size: 13px; color: 
   <footer>לא מעודדים לעשן. מעודדים לדבר.</footer>
 </div>
 
+<script src="vendor/qrcode.js"></script>
 <script>
 const RAW = `
 אם הייתם יכולים ללמוד מקצוע חדש לגמרי בחודש אחד, מה הייתם בוחרים? | למה דווקא זה? | מה הייתם עושים איתו ביום הראשון? | מכירים מישהו שכבר עושה את זה?
@@ -440,13 +466,88 @@ const S = { mode: 'idle', start: 0, dur: 0, topic: -1, lastDrop: 0, b: 0 };
 let wakeLock = null, smokeUntil = 0;
 
 function pickTopic() {
-  let used = store.get('used', []);
+  const used = store.get('used', []);
   let pool = TOPICS.map((_, i) => i).filter(i => !used.includes(i));
-  if (!pool.length) { used = []; pool = TOPICS.map((_, i) => i); }
+  if (!pool.length) pool = TOPICS.map((_, i) => i);
   const i = pool[Math.floor(Math.random() * pool.length)];
-  used.push(i);
-  store.set('used', used);
+  markUsed(i);
   return i;
+}
+
+function markUsed(i) {
+  let used = store.get('used', []);
+  if (used.length >= TOPICS.length) used = [];
+  if (!used.includes(i)) used.push(i);
+  store.set('used', used);
+}
+
+/* Shared break: everything a guest needs travels inside the QR link, no server involved.
+   #join=<format>.<topic>.<start, base36 ms>.<duration s>.<topic checksum> */
+const JOIN_FORMAT = 1;
+const MAX_CLOCK_SKEW = 60000;
+
+function topicCheck(i) {
+  let h = 0;
+  for (const ch of TOPICS[i].t) h = (h * 31 + ch.codePointAt(0)) % 1296;
+  return h.toString(36).padStart(2, '0');
+}
+
+function joinUrl() {
+  const code = [JOIN_FORMAT, S.topic, S.start.toString(36), S.dur / 1000, topicCheck(S.topic)].join('.');
+  return location.origin + location.pathname + '#join=' + code;
+}
+
+function parseJoin(hash) {
+  const m = /^#join=(\d+)\.(\d+)\.([0-9a-z]+)\.(\d+)\.([0-9a-z]{2})$/.exec(hash || '');
+  if (!m || +m[1] !== JOIN_FORMAT) return null;
+  const topic = +m[2], start = parseInt(m[3], 36), dur = +m[4] * 1000;
+  if (!TOPICS[topic] || topicCheck(topic) !== m[5] || dur < 180000 || dur > 300000) return null;
+  return { topic, start, dur };
+}
+
+function handleJoin() {
+  if (!location.hash.startsWith('#join=')) return;
+  const j = parseJoin(location.hash);
+  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  const now = Date.now();
+  let problem = '';
+  if (!j || j.start > now + MAX_CLOCK_SKEW) problem = 'הקוד שנסרק לא תקין, אולי כי האתר התעדכן בינתיים. אפשר להדליק סיגריה חדשה.';
+  else if (now >= j.start + j.dur) problem = 'ההפסקה הזאת כבר נגמרה. אפשר להדליק סיגריה חדשה.';
+  if (problem) {
+    if (S.mode === 'lit') return;
+    reset();
+    $('joinMsg').textContent = problem;
+    $('joinMsg').hidden = false;
+    return;
+  }
+  reset();
+  light(j);
+}
+
+function showInvite() {
+  const url = joinUrl();
+  const qr = qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+  const n = qr.getModuleCount(), quiet = 4, size = n + quiet * 2;
+  const cell = Math.max(4, Math.floor(264 / size));
+  const c = $('qr'), g = c.getContext('2d');
+  c.width = c.height = size * cell;
+  g.fillStyle = '#fffaf0';
+  g.fillRect(0, 0, c.width, c.height);
+  g.fillStyle = '#2B1D16';
+  for (let r = 0; r < n; r++)
+    for (let k = 0; k < n; k++)
+      if (qr.isDark(r, k)) g.fillRect((k + quiet) * cell, (r + quiet) * cell, cell, cell);
+  c.dataset.url = url;
+  $('invite').hidden = false;
+  $('inviteBtn').setAttribute('aria-expanded', 'true');
+  $('invite').scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+}
+
+function hideInvite() {
+  $('invite').hidden = true;
+  $('inviteBtn').setAttribute('aria-expanded', 'false');
 }
 
 const fmt = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
@@ -496,14 +597,26 @@ function dropAsh(from, to) {
   S.lastDrop = to;
 }
 
-function light() {
+function light(join) {
   if (S.mode !== 'idle') return;
   S.mode = 'lit';
-  S.start = Date.now();
-  S.dur = (180 + Math.random() * 120) * 1000;
-  S.topic = pickTopic();
-  S.lastDrop = 0; S.b = 0;
+  if (join) {
+    S.start = join.start;
+    S.dur = join.dur;
+    S.topic = join.topic;
+    markUsed(S.topic);
+    S.b = S.lastDrop = Math.max(0, Math.min(1, (Date.now() - S.start) / S.dur)) * BURN;
+  } else {
+    S.start = Date.now();
+    S.dur = Math.round(180 + Math.random() * 120) * 1000;
+    S.topic = pickTopic();
+    S.lastDrop = 0; S.b = 0;
+  }
   renderTopic();
+  $('litTag').textContent = join ? 'הצטרפת להפסקה' : 'נושא לשיחה';
+  $('joinMsg').hidden = true;
+  $('inviteBtn').hidden = false;
+  hideInvite();
   cig.classList.add('lit');
   cig.setAttribute('aria-label', 'הסיגריה דולקת');
   match.classList.remove('struck');
@@ -524,6 +637,8 @@ function finish() {
   statusEl.textContent = 'נשאר רק הפילטר';
   clock.textContent = '0:00';
   $('doneBar').hidden = false;
+  $('inviteBtn').hidden = true;
+  hideInvite();
   hint.hidden = false;
   hint.textContent = 'נגמרה הסיגריה. השיחה לא חייבת להיגמר.';
   try { wakeLock?.release(); } catch {}
@@ -542,11 +657,13 @@ function reset() {
   clock.textContent = '-:--';
   $('idleView').hidden = false;
   $('litView').hidden = true;
+  $('joinMsg').hidden = true;
+  hideInvite();
 }
 
 function update() {
   if (S.mode !== 'lit') return;
-  const elapsed = Date.now() - S.start;
+  const elapsed = Math.max(0, Date.now() - S.start);
   const p = Math.min(1, elapsed / S.dur);
   S.b = p * BURN;
   if (S.b - S.lastDrop > 13 || (S.b - S.lastDrop > 7 && Math.random() < 0.004)) dropAsh(S.lastDrop, S.b);
@@ -663,10 +780,13 @@ function endDrag(lit) {
 match.addEventListener('pointerup', () => endDrag(false));
 match.addEventListener('pointercancel', () => endDrag(false));
 
-cig.addEventListener('click', light);
+cig.addEventListener('click', () => light());
 cig.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); light(); } });
-$('lightBtn').addEventListener('click', light);
+$('lightBtn').addEventListener('click', () => light());
 $('againBtn').addEventListener('click', reset);
+$('inviteBtn').addEventListener('click', () => $('invite').hidden ? showInvite() : hideInvite());
+$('closeInvite').addEventListener('click', hideInvite);
+window.addEventListener('hashchange', handleJoin);
 
 $('copyBtn').addEventListener('click', () => {
   const text = shareText(), msg = $('copyMsg'), fb = $('copyFallback');
@@ -686,6 +806,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 reset();
+handleJoin();
 </script>
 </body>
 </html>
