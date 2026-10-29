@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="למי שלא מעשן, אבל לא מוותר על ההפסקה: מדליקים סיגריה וירטואלית ומקבלים נושא לשיחה.">
+<title>הפסקת סיגריה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&family=Suez+One&display=swap">
+<style>
+/* Layout: one narrow poster column — masthead, smoking stage, meter, topic card, pack warning */
+:root {
+  --ground: #1E4D4A;
+  --ground-deep: #143836;
+  --paper: #F2E6CC;
+  --paper-shade: #D9C9A6;
+  --mustard: #E3A631;
+  --tomato: #D4472C;
+  --ink: #2B1D16;
+  --display: "Suez One", "Frank Ruhl Libre", Georgia, serif;
+  --body: "Assistant", "Arial Hebrew", Arial, sans-serif;
+  --label: "Secular One", "Assistant", Arial, sans-serif;
+  color-scheme: dark;
+  direction: rtl;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  background-color: var(--ground);
+  background-image: radial-gradient(rgba(0,0,0,.2) 1px, transparent 1.3px);
+  background-size: 6px 6px;
+  color: var(--paper);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Masthead */
+.mast { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow {
+  font-family: var(--label);
+  font-size: 14px;
+  letter-spacing: .06em;
+  color: var(--paper-shade);
+  display: flex; gap: 10px; align-items: center;
+}
+.eyebrow::before, .eyebrow::after { content: ""; height: 2px; flex: 1; background: var(--paper-shade); opacity: .5; }
+h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(46px, 12vw, 80px);
+  line-height: 1.05;
+  color: var(--mustard);
+  text-shadow: 4px 4px 0 var(--tomato), 7px 7px 0 var(--ink);
+  text-align: center;
+  text-wrap: balance;
+}
+.sub { margin: 4px 0 0; text-align: center; font-size: 19px; font-weight: 600; text-wrap: balance; }
+
+/* Stage */
+.stage {
+  position: relative;
+  height: 290px;
+  background: var(--ground-deep);
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: 6px 6px 0 var(--ink), inset 0 0 60px rgba(0,0,0,.35);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#smoke { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+.cig {
+  position: absolute;
+  top: 40%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  width: min(440px, calc(100% - 56px));
+  height: 30px;
+  direction: ltr;
+  cursor: pointer;
+  z-index: 2;
+  outline: none;
+}
+.cig:focus-visible { outline: 3px solid var(--mustard); outline-offset: 8px; border-radius: 4px; }
+.paper {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 74%;
+  background: linear-gradient(#fffaf0, #efe6d4 55%, #d6cab2);
+  border-radius: 2px 0 0 2px;
+}
+.paper::before {
+  content: ""; position: absolute; left: 0; top: 2px; bottom: 2px; width: 4px;
+  background: #8a5a33; border-radius: 2px 0 0 2px;
+}
+.filter {
+  position: absolute; top: 0; bottom: 0; right: 0; width: 26%;
+  background-color: #D4843A;
+  background-image: radial-gradient(rgba(120,50,10,.45) 1.2px, transparent 1.6px), linear-gradient(rgba(255,255,255,.25), transparent 50%, rgba(0,0,0,.18));
+  background-size: 5px 4px, 100% 100%;
+  border-left: 3px solid #E9C35A;
+  border-radius: 0 5px 5px 0;
+}
+.ash, .ashbit {
+  position: absolute; top: 1px; bottom: 1px; left: 0; width: 0;
+  background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 5px), linear-gradient(#c7c0b3, #8f887d 60%, #6b655c);
+  border-radius: 4px 0 0 4px;
+}
+.ember {
+  position: absolute; top: -1px; bottom: -1px; left: 0; width: 7px; margin-left: -4px;
+  border-radius: 3px;
+  background: radial-gradient(circle at 50% 50%, #fff1b0, #ffb347 40%, #e2461f 80%);
+  box-shadow: 0 0 14px 5px rgba(255,110,40,.65);
+  opacity: 0;
+  transition: opacity .8s;
+}
+.lit .ember { opacity: 1; animation: glow 1.8s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: 0 0 22px 8px rgba(255,120,40,.8); filter: brightness(1.2); } }
+
+.box {
+  position: absolute; left: 50%; top: 74%;
+  width: 168px; height: 40px;
+  background: var(--mustard);
+  border: 3px solid var(--ink);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--label); font-size: 15px; color: var(--ink);
+  letter-spacing: .04em;
+  z-index: 1;
+}
+.box::before { content: ""; position: absolute; inset: auto 0 -3px; height: 8px; background: repeating-linear-gradient(90deg, #6b3a24 0 3px, #8f4b2e 3px 6px); border-top: 2px solid var(--ink); }
+.match {
+  position: absolute; left: calc(50% + 14px); top: calc(74% - 16px);
+  width: 136px; height: 14px;
+  direction: ltr;
+  display: flex; align-items: center;
+  touch-action: none;
+  cursor: grab;
+  z-index: 4;
+  transition: transform .55s cubic-bezier(.3,1.4,.5,1), opacity .4s;
+}
+.match.dragging { transition: none; cursor: grabbing; }
+.match .head { width: 18px; height: 14px; border-radius: 8px 4px 4px 8px; background: #9a2c1b; box-shadow: inset -3px -3px 0 rgba(0,0,0,.25); flex: none; }
+.match .stick { flex: 1; height: 7px; background: #EBCB8E; border: 1px solid #b89458; border-left: 0; }
+.match .flame {
+  position: absolute; left: -6px; top: -30px; width: 20px; height: 32px;
+  border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
+  background: radial-gradient(ellipse at 50% 75%, #fff6c8 0 20%, #ffc04a 45%, rgba(226,70,31,.85) 75%, transparent 78%);
+  transform-origin: 50% 100%;
+  opacity: 0; transition: opacity .2s;
+  pointer-events: none;
+}
+.match.struck .flame { opacity: 1; animation: flicker .25s ease-in-out infinite alternate; }
+@keyframes flicker { from { transform: scale(1, 1) rotate(-3deg); } to { transform: scale(.92, 1.08) rotate(3deg); } }
+.match.spent .head { background: #2a2420; }
+.match.spent { opacity: .0; }
+.hint {
+  position: absolute; left: 0; right: 0; bottom: 8px; margin: 0;
+  padding-inline: 12px;
+  text-align: center;
+  font-family: var(--label); font-size: 14px; color: var(--paper-shade);
+  z-index: 5;
+}
+
+/* Meter */
+.meter {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  font-family: var(--label); color: var(--paper-shade); font-size: 15px;
+  padding-inline: 4px;
+}
+.clock { font-family: var(--display); color: var(--mustard); font-size: 26px; font-variant-numeric: tabular-nums; direction: ltr; }
+
+/* Topic card */
+.card {
+  background: var(--paper);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  padding: 22px clamp(18px, 4vw, 30px) 24px;
+  box-shadow: 7px 7px 0 var(--ink);
+  transform: rotate(-.5deg);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.card > div { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.tag {
+  display: inline-block;
+  font-family: var(--label); font-size: 14px; letter-spacing: .05em;
+  background: var(--tomato); color: var(--paper);
+  padding: 2px 12px; border-radius: 2px;
+  transform: rotate(1.2deg);
+}
+.card p { margin: 0; max-width: 60ch; }
+.card h2 {
+  margin: 0;
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(25px, 5.6vw, 34px); line-height: 1.25;
+  text-wrap: balance;
+}
+.follow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.follow li {
+  display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start;
+  border-top: 2px dashed rgba(43,29,22,.25);
+  padding-top: 10px;
+  min-width: 0;
+}
+.follow .n {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--mustard); border: 2px solid var(--ink);
+  display: grid; place-items: center;
+  font-family: var(--label); font-size: 15px;
+}
+.follow .q { font-size: 18px; font-weight: 600; padding-top: 2px; }
+.follow li.locked .n { background: transparent; border-style: dashed; color: rgba(43,29,22,.5); }
+.follow li.locked .q { font-weight: 400; color: rgba(43,29,22,.55); font-style: italic; }
+.follow li.on .q { animation: inkin .9s ease-out; }
+@keyframes inkin { from { opacity: 0; filter: blur(3px); } }
+
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  font-family: var(--label); font-size: 16px;
+  background: var(--ground); color: var(--paper);
+  border: 2px solid var(--ink); border-radius: 999px;
+  padding: 8px 18px;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer; text-decoration: none;
+  transition: transform .12s, box-shadow .12s;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn:focus-visible { outline: 3px solid var(--mustard); outline-offset: 3px; }
+.btn.primary { background: var(--tomato); }
+.msg { font-family: var(--label); font-size: 14px; color: var(--ground); }
+#copyFallback { width: 100%; min-height: 120px; font-family: var(--body); font-size: 15px; color: var(--ink); background: #fffaf0; border: 2px solid var(--ink); border-radius: 4px; padding: 8px; color-scheme: light; }
+.done {
+  width: 100%;
+  border: 2px solid var(--ink); border-radius: 4px;
+  background: var(--mustard);
+  padding: 12px 14px;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+}
+.done strong { font-family: var(--display); font-weight: 400; font-size: 20px; }
+
+/* Pack warning */
+.warning {
+  margin: 6px 0 0;
+  background: var(--paper); color: var(--ink);
+  border: 4px solid var(--ink);
+  outline: 2px solid var(--paper); outline-offset: -9px;
+  padding: 16px 18px;
+  font-weight: 700; font-size: 15px; line-height: 1.45;
+}
+.warning b { font-family: var(--label); font-weight: 400; display: block; font-size: 16px; letter-spacing: .04em; }
+footer { text-align: center; font-family: var(--label); font-size: 13px; color: var(--paper-shade); opacity: .8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lit .ember, .match.struck .flame, .follow li.on .q { animation: none; }
+  .match { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl" lang="he">
+  <header class="mast">
+    <div class="eyebrow" id="count">נושאים לשיחה בקופסה</div>
+    <h1>הפסקת סיגריה</h1>
+    <p class="sub">למי שלא מעשן, אבל לא מוותר על ההפסקה</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="הסיגריה">
+    <canvas id="smoke" aria-hidden="true"></canvas>
+    <div class="cig" id="cig" role="button" tabindex="0" aria-label="להדליק את הסיגריה">
+      <div class="paper" id="paper"></div>
+      <div class="ash" id="ash"></div>
+      <div class="ember" id="ember"></div>
+      <div class="filter"></div>
+    </div>
+    <div class="box" aria-hidden="true">גפרורי הפסקה</div>
+    <div class="match" id="match" aria-hidden="true"><span class="flame"></span><span class="head"></span><span class="stick"></span></div>
+    <p class="hint" id="hint">גררו את הגפרור אל קצה הסיגריה, או הקישו על הסיגריה</p>
+  </section>
+
+  <div class="meter">
+    <span id="status">סיגריה אחת: בין 3 ל-5 דקות</span>
+    <span class="clock" id="clock">-:--</span>
+  </div>
+
+  <article class="card" id="card">
+    <div id="idleView">
+      <span class="tag">איך זה עובד</span>
+      <p>מדליקים את הסיגריה ומקבלים נושא לשיחה. כל סיגריה נשרפת בקצב משלה, בין 3 ל-5 דקות, ובדרך עולות שלוש שאלות המשך כדי שהשיחה לא תיתקע.</p>
+      <button class="btn primary" id="lightBtn" type="button">להדליק</button>
+    </div>
+    <div id="litView" hidden>
+      <span class="tag">נושא לשיחה</span>
+      <h2 id="topic"></h2>
+      <ol class="follow" id="follow"></ol>
+      <div class="done" id="doneBar" hidden>
+        <strong>הסיגריה נגמרה.</strong>
+        <button class="btn primary" id="againBtn" type="button">סיגריה חדשה</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="copyBtn" type="button">העתקת הנושא</button>
+        <a class="btn" id="waBtn" href="https://wa.me/" target="_blank" rel="noopener">שליחה בוואטסאפ</a>
+        <span class="msg" id="copyMsg" aria-live="polite"></span>
+      </div>
+      <textarea id="copyFallback" hidden readonly aria-label="טקסט להעתקה"></textarea>
+    </div>
+  </article>
+
+  <p class="warning"><b>אזהרת משרד ההפסקות</b>הפסקה זו עלולה לגרום לשיחות עמוקות, לצחוק בקול ולאיחור קל בחזרה לעבודה.</p>
+  <footer>לא מעודדים לעשן. מעודדים לדבר.</footer>
+</div>
+
+<script>
+const RAW = `
+אם הייתם יכולים ללמוד מקצוע חדש לגמרי בחודש אחד, מה הייתם בוחרים? | למה דווקא זה? | מה הייתם עושים איתו ביום הראשון? | מכירים מישהו שכבר עושה את זה?
+מה הארוחה הכי טובה שאכלתם אי פעם? | איפה, ועם מי? | הייתם מצליחים לשחזר אותה? | מה עשה אותה מושלמת: האוכל או הרגע?
+איזו המצאה הייתם מבטלים מהעולם אם הייתם יכולים? | מה היה משתנה ביום-יום שלכם? | מי היה הכי מתעצבן? | מה הייתם ממציאים במקומה?
+איזו עבודה רציתם לעשות כשהייתם ילדים? | נשאר מזה משהו היום? | מה גרם לכם לוותר, או לא לוותר? | הייתם מנסים אותה עכשיו ליום אחד?
+במה אתם מאמינים בלי שום הוכחה? | מאיפה זה הגיע? | מה היה גורם לכם להפסיק להאמין? | מי עוד מאמין בזה?
+אם הייתם צריכים לעבור לגור בעיר אחרת מחר, לאן? | למה הכי הייתם מתגעגעים? | מה הדבר הראשון שהייתם עושים שם? | ובאיזו שפה הייתם מסתדרים?
+מה הכישרון הכי חסר תועלת שיש לכם? | איך גיליתם אותו? | היה פעם רגע שהוא דווקא עזר? | אפשר הדגמה?
+איזה שיר מחזיר אתכם בבת אחת לתקופה מסוימת? | איזו תקופה? | אתם שמחים או עצובים כשהוא מתנגן? | מתי שמעתם אותו לאחרונה?
+מה הכי השתנה אצלכם בחמש השנים האחרונות? | זה קרה בבת אחת או לאט? | מי שם לב ראשון? | ומה לא השתנה בכלל?
+אם הייתם מנהלים את המקום הזה ליום אחד, מה הייתם משנים? | מה הייתם משאירים בדיוק כמו שהוא? | מי היה הכי מופתע? | למה זה עוד לא קרה?
+מה העצה הכי טובה שקיבלתם? | ממי? | הקשבתם לה מיד? | למי הייתם מעבירים אותה היום?
+איזו טעות מהעבר אתם היום שמחים שעשיתם? | מה למדתם ממנה? | הייתם עושים אותה שוב? | מי היה שם איתכם?
+איזו חיה הייתם רוצים להיות ליום אחד? | מה הדבר הראשון שהייתם עושים? | ואיזו חיה בשום אופן לא? | יש לכם חיית מחמד, או שרציתם?
+איזה ספר, סרט או סדרה הכי השפיעו עליכם? | באיזה גיל פגשתם אותם? | זה עדיין מחזיק מעמד? | למי הייתם ממליצים, ולמי בשום פנים לא?
+אם הייתה לכם שעה נוספת בכל יום, מה הייתם עושים איתה? | באמת, או שהייתם ישנים? | למה זה לא נכנס ללו"ז כבר היום? | על מה הייתם מוותרים כדי לפנות שעה כזאת?
+מה החופשה הכי טובה, או הכי גרועה, שהייתה לכם? | מה הפך אותה לכזאת? | חזרתם לשם? | מה החופשה הבאה ברשימה?
+איזה מנהג משפחתי שלכם נראה מוזר לאנשים מבחוץ? | איך הוא התחיל? | תמשיכו אותו? | איזה מנהג הייתם מוסיפים?
+אם הייתם יכולים לשאול שאלה אחת ולקבל תשובה אמיתית, מה הייתם שואלים? | ואם התשובה מאכזבת? | מי עוד היה רוצה לדעת? | מה השאלה השנייה?
+מה הדבר הקטן שעושה לכם את היום? | מתי זה קרה לאחרונה? | אפשר לעשות את זה בכוונה? | ומה עושה את היום לאנשים שאתם מכירים?
+מה הייתם אומרים לעצמכם בגיל 16? | הוא היה מקשיב? | מה הוא היה חושב עליכם היום? | ומה בכלל לא הייתם מספרים לו?
+מה הסכנה האמיתית בבינה מלאכותית, ומה סתם הגזמה? | מה כבר השתנה אצלכם בגללה? | איזו עבודה הייתם מוסרים לה בשמחה? | ואיזו לעולם לא?
+איזו מיומנות כולם צריכים ללמוד בבית הספר, ולא מלמדים? | איך הייתם מלמדים אותה? | איפה אתם למדתם אותה? | מה מלמדים היום שאפשר לוותר עליו?
+פיצה עם אננס: כן או לא? | ומה עם תוספות מוזרות אחרות? | על איזה מאכל אתם מגינים בכל מחיר? | איזה מאכל כולם אוהבים ואתם לא סובלים?
+מה הקנייה הכי טובה שעשיתם בפחות ממאה שקל? | איך הגעתם אליה? | אתם עדיין משתמשים בה? | ומה הקנייה הכי מיותרת?
+אם הייתם צריכים לנאום עשר דקות בלי הכנה, על מה הייתם מדברים? | למה דווקא זה? | איך הייתם פותחים? | מי היה יושב בקהל?
+איזה מקום בארץ לא מקבל את ההערכה שמגיעה לו? | מתי הייתם שם? | מה חייבים לעשות שם? | ואיזה מקום מקבל יותר מדי הערכה?
+בוקר או לילה: מתי אתם הכי אתם? | תמיד הייתם ככה? | מה אתם עושים בשעות האלה? | העבודה שלכם מתאימה לזה?
+איזה תחביב תמיד רציתם להתחיל ולא התחלתם? | מה עוצר אתכם? | מה היה הצעד הראשון? | רוצים להתחיל ביחד?
+איך הייתם מסבירים את העבודה שלכם לילד בן חמש? | ולסבתא? | איזה חלק אף אחד לא מבין? | איזה חלק הכי כיף?
+מתי בפעם האחרונה עשיתם משהו בפעם הראשונה? | איך היה? | הייתם עושים את זה שוב? | מה הדבר הבא?
+אם הייתם זוכים בלוטו מחר, הייתם ממשיכים לעבוד? | מה הדבר הראשון שהייתם קונים? | למי הייתם מספרים? | ומה לא היה משתנה?
+איזה תחום הייתם רוצים להבין ממש לעומק? | מה מושך אתכם אליו? | איפה הייתם מתחילים? | מכירים מישהו שמבין בזה?
+מה הייתם עושים ביום שלם בלי טלפון? | מתי היה לכם יום כזה לאחרונה? | למה הכי הייתם מתגעגעים? | מה הייתם מגלים?
+איזה חפץ בבית שלכם מסתיר סיפור? | מאיפה הוא? | הייתם מוותרים עליו? | מה הייתם מצילים ראשון?
+איזה מאכל של אמא, אבא או סבתא אי אפשר לשחזר? | ניסיתם? | יש מתכון כתוב? | איזה מאכל אתם תעבירו הלאה?
+מה מצחיק אתכם גם בפעם המאה? | למה זה עובד? | יש לכם בדיחה פנימית עם מישהו? | מה הצחיק אתכם בקול לאחרונה?
+מה ההבדל בין אנשים שמצליחים לאנשים שלא? | מזל או עבודה קשה? | מה זה בכלל להצליח, בשבילכם? | מי בעיניכם הצליח באמת?
+איזה הרגל הייתם רוצים להפסיק? (לא, לא עישון) | כמה זמן הוא איתכם? | ניסיתם כבר? | מה היה עובד עליכם?
+מה החלום הכי מוזר שאתם זוכרים? | חלמתם אותו שוב? | חלומות אומרים משהו, לדעתכם? | אתם חולמים בצבעים?
+אם הייתם יכולים לחיות בתקופה אחרת, איזו? | מה הייתם עושים שם? | ממה הכי הייתם חוששים? | מה מהיום הייתם לוקחים איתכם?
+איזו שאלה כולם שואלים אתכם, ונמאס לכם לענות עליה? | למה כולם שואלים? | מה התשובה האמיתית? | ואיזו שאלה הייתם רוצים שישאלו?
+במה אתם עקשנים בלי סיבה טובה? | מישהו כבר ניסה לשכנע אתכם? | יש סיכוי שתשתנו? | ועל מה דווקא קל לשכנע אתכם?
+מה הייתם עושים אילו ידעתם שלא תיכשלו? | למה לא עכשיו? | מה הגרסה הקטנה של זה? | מי יכול לעזור?
+איזה מורה או מנטור שינה לכם משהו? | מה הוא עשה אחרת? | יצא לכם להגיד לו תודה? | מה מזה אתם מעבירים הלאה?
+מה הכי מעצבן אתכם בנהגים אחרים? | ואילו חטאים יש לכם על הכביש? | רכב, אופניים או תחבורה ציבורית? | איך העיר הייתה נראית אילו אתם הייתם מתכננים אותה?
+איזה ריח מחזיר אתכם למקום מסוים? | לאן? | זה זיכרון טוב? | מה הריח האהוב עליכם?
+כלבים או חתולים, ולמה זאת בעצם שאלה על אופי? | היו לכם בילדות? | מה זה אומר עליכם? | איזו חיית מחמד לא שגרתית הייתם מגדלים?
+אם הייתם צריכים להמליץ על סרט אחד לכל העולם, איזה? | מה הוא מלמד? | איפה ראיתם אותו בפעם הראשונה? | הוא מחזיק גם בצפייה שנייה?
+מה הדבר הכי אמיץ שעשיתם? | פחדתם? | מישהו ידע? | מה הדבר האמיץ הבא?
+מה ההבדל בין חבר טוב למכר? | כמה חברים טובים יש לכם? | איך שומרים על חברות לאורך שנים? | עם מי איבדתם קשר והייתם רוצים לחדש?
+מה מבוגרים אומרים לילדים, והוא בכלל לא נכון? | מתי גיליתם? | אתם עדיין אומרים את זה? | מה כדאי להגיד במקום?
+איזו אפליקציה הייתם מוחקים מכל הטלפונים בעולם? | ואיזו אפליקציה חסרה? | כמה זמן מסך יש לכם ביום? | זה מפריע לכם?
+אם הייתם פותחים עסק קטן, מה הוא היה? | איפה? | איך הוא היה נקרא? | מה הלקוח הראשון היה קונה?
+מה הכי קשה לכם לבקש? | למה? | מתי בכל זאת ביקשתם? | ממי הכי קל לבקש?
+מה זה "בית" בשבילכם? | מקום או אנשים? | כמה בתים היו לכם? | מתי הרגשתם בבית במקום זר?
+קפה או תה, ואיך בדיוק? | מאיפה ההרגל? | כמה כוסות ביום? | מה הכוס הכי טובה ששתיתם?
+איזו מסורת חג אתם הכי אוהבים? | ואיזו הייתם מבטלים? | מה עושים אצלכם אחרת מכולם? | איזה חג הייתם ממציאים?
+מה אנשים לא יודעים עליכם? | למה לא סיפרתם? | מי כן יודע? | תספרו עכשיו?
+מה גורם לכם להרגיש מבוגרים? | מתי זה קרה לראשונה? | ומה עדיין גורם לכם להרגיש ילדים? | בן כמה אתם מרגישים?
+אם הייתם יכולים לדבר מחר שפה נוספת בשטף, איזו? | מה הייתם עושים איתה? | איזו מילה משפה אחרת אתם הכי אוהבים? | התחלתם פעם ללמוד שפה וויתרתם?
+באיזה ספורט הייתם רוצים להיות טובים? | ניסיתם פעם? | צופים או משחקים? | מה הרגע הספורטיבי הכי בלתי נשכח?
+עדיף לדעת את העתיד, או לא? | מה הייתם רוצים לדעת? | ומה בשום אופן לא? | הייתם מתנהגים אחרת?
+מה הסוד לישיבת עבודה טובה? | מה הישיבה הכי ארוכה שהייתם בה? | מה הייתם משנים בישיבות? | כמה ישיבות היו יכולות להיות מייל?
+איזו תכונה אתם הכי מעריכים באנשים? | יש לכם אותה? | מי בעיניכם הדוגמה? | ואיזו תכונה הכי מרחיקה אתכם?
+מה המקום הכי יפה שראיתם? | צילמתם, או רק הסתכלתם? | הייתם רוצים לחזור? | איזה מקום עוד חייבים לראות?
+מה הדבר הכי טוב שקרה לכם השבוע? | סיפרתם למישהו? | זה היה מתוכנן או הפתעה? | ומה מחכה לכם בשבוע הבא?
+אם הייתם יכולים לבטל כלל חברתי אחד, איזה? | למה הוא קיים בכלל? | מי היה מתנגד? | ואיזה כלל הייתם מוסיפים?
+מה התפקיד שלכם בקבוצת החברים? | מתי הוא התגבש? | אתם אוהבים אותו? | איזה תפקיד הייתם רוצים לנסות?
+מה ההחלטה הכי טובה שקיבלתם מהר מדי? | מה עזר לכם להחליט? | ואיזו החלטה מהירה התחרטתם עליה? | איך אתם מחליטים בדרך כלל?
+מה אתם הכי טובים בלהכין במטבח? | ממי למדתם? | יש סוד במתכון? | מתי הכנתם את זה לאחרונה?
+מה הייתה העבודה הראשונה שלכם? | כמה הרווחתם? | מה למדתם שם? | הייתם חוזרים אליה ליום אחד?
+אם החיים שלכם היו סרט, מה היה הז'אנר? | מי היה משחק אתכם? | מה הסצנה המרכזית עד עכשיו? | ומה הטוויסט?
+אפשר להיות מאושרים בלי להיות עסוקים? | מתי השתעממתם בפעם האחרונה? | שעמום זה דבר רע? | מה אתם עושים כשמשעמם?
+מה הייתם רוצים שיגידו עליכם בעוד עשרים שנה? | אתם בדרך לשם? | מה צריך לשנות? | מי מהעבר הייתם רוצים שיראה אתכם?
+איזה טרנד אתם בכלל לא מבינים? | ניסיתם? | לאיזה טרנד מהעבר אתם מתגעגעים? | מה יהיה הטרנד הבא?
+מה הייתם עושים עם שבוע חופש שמתחיל מחר בבוקר, בלי תכנון? | לבד או עם מישהו? | בארץ או בחו"ל? | מה הייתם עושים בשעה הראשונה?
+מה החפץ הכי ישן שעדיין יש לכם? | למה שמרתם אותו? | יש לו ערך, או רק סיפור? | למי תעבירו אותו?
+מה הכי השתנה בעבודה שלכם מאז שהתחלתם? | לטובה או לרעה? | למה אתם מתגעגעים? | איך היא תיראה בעוד חמש שנים?
+איך נראה יום מושלם בשבילכם, מהבוקר ועד הלילה? | מה אוכלים? | עם מי? | מה ממנו אפשר לעשות כבר השבוע?
+מה העבודה הכי מוזרה שהייתם מוכנים לעשות תמורת הרבה כסף? | כמה כסף? | ומה לא בשום מחיר? | מכירים מישהו עם עבודה מוזרה?
+מה כולם אוהבים ואתם לא מבינים למה? | ניסיתם באמת? | ומה אתם אוהבים שאף אחד לא מבין? | שווה לנסות שוב?
+אם הייתם מקבלים כוח-על אחד קטן ושימושי, מה הוא היה? | איך הוא היה משנה את הבוקר שלכם? | למי הייתם מספרים? | ומה המחיר?
+כמה חשוב לכם לנצח בוויכוח? | איזה ויכוח אתם זוכרים כבר שנים? | מתי שיניתם דעה לאחרונה? | מה גורם לכם לשנות דעה?
+איזה סיפור משפחתי עובר אצלכם מדור לדור? | כמה ממנו נכון? | מי מספר אותו הכי טוב? | איזה סיפור אתם תספרו?
+איזו החלטה קטנה הכי שיפרה לכם את החיים? | כמה זמן לקח להרגיש? | למי הייתם ממליצים? | מה הבאה בתור?
+חודש על אי בודד עם שלושה חפצים: מה לוקחים? | למה דווקא אלה? | עם מי? | כמה זמן הייתם שורדים באמת?
+איזה מקצוע ייעלם בעוד עשרים שנה, ואיזה ייוולד? | הייתם ממליצים לילד ללמוד אותו? | מה מהעבודה שלכם יישאר? | איך זה מרגיש לכם?
+מה ההמצאה הכי חשובה של מאה השנים האחרונות? | ואיזו מקבלת יותר מדי קרדיט? | איך החיים היו נראים בלעדיה? | מה ההמצאה הבאה?
+מה אתם עושים כדי להירגע אחרי יום רע? | זה עובד? | מי יודע שאתם צריכים את זה? | איזה טריק למדתם ממישהו אחר?
+לאיזו סדרה הכי חיכיתם לפרק הבא? | צפיתם ברצף או לאט? | הסוף היה טוב או מאכזב? | מה אתם רואים עכשיו?
+`;
+const TOPICS = RAW.trim().split('\n').map(l => l.split('|').map(s => s.trim())).filter(a => a.length === 4).map(([t, ...q]) => ({ t, q }));
+
+const $ = id => document.getElementById(id);
+const stage = $('stage'), cig = $('cig'), paper = $('paper'), ash = $('ash'), ember = $('ember');
+const match = $('match'), hint = $('hint'), statusEl = $('status'), clock = $('clock');
+const canvas = $('smoke'), ctx = canvas.getContext('2d');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+document.documentElement.lang = 'he';
+document.documentElement.dir = 'rtl';
+$('count').textContent = TOPICS.length + ' נושאים לשיחה בקופסה';
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('break.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('break.' + k, JSON.stringify(v)); } catch {} }
+};
+
+const BODY = 74;          // % of length that is paper (the rest is filter)
+const BURN = 71;          // % that actually burns, leaving a short stub
+const REVEAL = [0.22, 0.5, 0.76];
+const S = { mode: 'idle', start: 0, dur: 0, topic: -1, lastDrop: 0, b: 0 };
+let wakeLock = null, smokeUntil = 0;
+
+function pickTopic() {
+  let used = store.get('used', []);
+  let pool = TOPICS.map((_, i) => i).filter(i => !used.includes(i));
+  if (!pool.length) { used = []; pool = TOPICS.map((_, i) => i); }
+  const i = pool[Math.floor(Math.random() * pool.length)];
+  used.push(i);
+  store.set('used', used);
+  return i;
+}
+
+const fmt = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+function shareText() {
+  const { t, q } = TOPICS[S.topic];
+  return 'נושא להפסקת סיגריה:\n' + t + '\n\n' + q.map((x, i) => (i + 1) + '. ' + x).join('\n');
+}
+
+function renderTopic() {
+  const { t, q } = TOPICS[S.topic];
+  $('topic').textContent = t;
+  const ol = $('follow');
+  ol.innerHTML = '';
+  q.forEach((_, i) => {
+    const li = document.createElement('li');
+    li.className = 'locked';
+    li.innerHTML = '<span class="n"></span><span class="q"></span>';
+    li.querySelector('.n').textContent = i + 1;
+    ol.appendChild(li);
+  });
+  $('waBtn').href = 'https://wa.me/?text=' + encodeURIComponent(shareText());
+  $('copyMsg').textContent = '';
+  $('copyFallback').hidden = true;
+}
+
+function setCig(b) {
+  paper.style.left = b + '%';
+  paper.style.width = (BODY - b) + '%';
+  ash.style.left = S.lastDrop + '%';
+  ash.style.width = Math.max(0, b - S.lastDrop) + '%';
+  ember.style.left = b + '%';
+}
+
+function dropAsh(from, to) {
+  if (to - from < 0.5) return;
+  const bit = document.createElement('div');
+  bit.className = 'ashbit';
+  bit.style.left = from + '%';
+  bit.style.width = (to - from) + '%';
+  cig.appendChild(bit);
+  const anim = bit.animate(reduced
+    ? [{ opacity: 1 }, { opacity: 0 }]
+    : [{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: 'translate(-6px,150px) rotate(-28deg)', opacity: 0 }],
+    { duration: reduced ? 500 : 1300, easing: 'cubic-bezier(.5,0,.8,.6)' });
+  anim.onfinish = () => bit.remove();
+  S.lastDrop = to;
+}
+
+function light() {
+  if (S.mode !== 'idle') return;
+  S.mode = 'lit';
+  S.start = Date.now();
+  S.dur = (180 + Math.random() * 120) * 1000;
+  S.topic = pickTopic();
+  S.lastDrop = 0; S.b = 0;
+  renderTopic();
+  cig.classList.add('lit');
+  cig.setAttribute('aria-label', 'הסיגריה דולקת');
+  match.classList.remove('struck');
+  match.classList.add('spent');
+  hint.hidden = true;
+  $('idleView').hidden = true;
+  $('litView').hidden = false;
+  $('doneBar').hidden = true;
+  for (let i = 0; i < 14; i++) puff(true);
+  try { navigator.wakeLock?.request('screen').then(l => { wakeLock = l; }).catch(() => {}); } catch {}
+}
+
+function finish() {
+  S.mode = 'done';
+  dropAsh(S.lastDrop, S.b);
+  cig.classList.remove('lit');
+  smokeUntil = performance.now() + 2500;
+  statusEl.textContent = 'נשאר רק הפילטר';
+  clock.textContent = '0:00';
+  $('doneBar').hidden = false;
+  hint.hidden = false;
+  hint.textContent = 'נגמרה הסיגריה. השיחה לא חייבת להיגמר.';
+  try { wakeLock?.release(); } catch {}
+  wakeLock = null;
+}
+
+function reset() {
+  S.mode = 'idle'; S.lastDrop = 0; S.b = 0;
+  setCig(0);
+  cig.setAttribute('aria-label', 'להדליק את הסיגריה');
+  match.classList.remove('spent', 'struck');
+  match.style.transform = '';
+  hint.hidden = false;
+  hint.textContent = 'גררו את הגפרור אל קצה הסיגריה, או הקישו על הסיגריה';
+  statusEl.textContent = 'סיגריה אחת: בין 3 ל-5 דקות';
+  clock.textContent = '-:--';
+  $('idleView').hidden = false;
+  $('litView').hidden = true;
+}
+
+function update() {
+  if (S.mode !== 'lit') return;
+  const elapsed = Date.now() - S.start;
+  const p = Math.min(1, elapsed / S.dur);
+  S.b = p * BURN;
+  if (S.b - S.lastDrop > 13 || (S.b - S.lastDrop > 7 && Math.random() < 0.004)) dropAsh(S.lastDrop, S.b);
+  setCig(S.b);
+  statusEl.textContent = 'נשאר בסיגריה';
+  clock.textContent = fmt(S.dur - elapsed);
+  const items = $('follow').children;
+  const q = TOPICS[S.topic].q;
+  for (let i = 0; i < items.length; i++) {
+    const li = items[i], at = REVEAL[i];
+    if (p >= at) {
+      if (li.classList.contains('locked')) {
+        li.classList.replace('locked', 'on');
+        li.querySelector('.q').textContent = q[i];
+      }
+    } else {
+      const txt = 'שאלת המשך תעלה בעוד ' + fmt(at * S.dur - elapsed);
+      const el = li.querySelector('.q');
+      if (el.textContent !== txt) el.textContent = txt;
+    }
+  }
+  if (p >= 1) finish();
+}
+
+/* Smoke */
+let parts = [], W = 0, H = 0, last = performance.now(), carry = 0;
+function size() {
+  const r = stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = r.width; H = r.height;
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(size).observe(stage);
+size();
+
+function source() {
+  const s = stage.getBoundingClientRect(), e = ember.getBoundingClientRect();
+  return { x: e.left + e.width / 2 - s.left, y: e.top + e.height / 2 - s.top };
+}
+function puff(burst) {
+  const { x, y } = source();
+  parts.push({
+    x, y,
+    vx: (Math.random() - .5) * (burst ? 40 : 8),
+    vy: -(burst ? 30 + Math.random() * 40 : 18 + Math.random() * 14),
+    r: 3 + Math.random() * 3,
+    g: 7 + Math.random() * 7,
+    life: 0,
+    max: 3.5 + Math.random() * 2.5,
+    seed: Math.random() * 10,
+    a: burst ? .16 : .22
+  });
+}
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000);
+  last = now;
+  update();
+  const emitting = S.mode === 'lit' || now < smokeUntil;
+  if (emitting) {
+    let rate = reduced ? 5 : 16;
+    if (S.mode !== 'lit') rate *= Math.max(0, (smokeUntil - now) / 2500);
+    carry += rate * dt;
+    while (carry >= 1) { puff(false); carry--; }
+  }
+  ctx.clearRect(0, 0, W, H);
+  parts = parts.filter(p => p.life < p.max && p.y > -60);
+  for (const p of parts) {
+    p.life += dt;
+    p.x += (p.vx + Math.sin((p.life + p.seed) * 1.7) * 14) * dt;
+    p.y += p.vy * dt;
+    p.vx *= .99;
+    p.r += p.g * dt;
+    const k = p.life / p.max;
+    const alpha = p.a * (1 - k) * Math.min(1, p.life * 3);
+    const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+    grd.addColorStop(0, 'rgba(242,230,204,' + alpha + ')');
+    grd.addColorStop(1, 'rgba(242,230,204,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* Lighting: drag the match to the tip, tap the cigarette, or press the button */
+let drag = null;
+match.addEventListener('pointerdown', e => {
+  if (S.mode !== 'idle') return;
+  e.preventDefault();
+  match.setPointerCapture(e.pointerId);
+  drag = { x: e.clientX, y: e.clientY };
+  match.classList.add('struck', 'dragging');
+  hint.textContent = 'עכשיו אל הקצה של הסיגריה';
+});
+match.addEventListener('pointermove', e => {
+  if (!drag) return;
+  match.style.transform = 'translate(' + (e.clientX - drag.x) + 'px,' + (e.clientY - drag.y) + 'px)';
+  const h = match.querySelector('.head').getBoundingClientRect();
+  const t = paper.getBoundingClientRect();
+  const dx = h.left - t.left, dy = (h.top + h.height / 2) - (t.top + t.height / 2);
+  if (Math.hypot(dx, dy) < 38) endDrag(true);
+});
+function endDrag(lit) {
+  if (!drag) return;
+  drag = null;
+  match.classList.remove('dragging');
+  match.style.transform = '';
+  if (lit) light();
+  else {
+    hint.textContent = 'כמעט. גררו את ראש הגפרור עד לקצה הסיגריה';
+    setTimeout(() => { if (S.mode === 'idle') match.classList.remove('struck'); }, 450);
+  }
+}
+match.addEventListener('pointerup', () => endDrag(false));
+match.addEventListener('pointercancel', () => endDrag(false));
+
+cig.addEventListener('click', light);
+cig.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); light(); } });
+$('lightBtn').addEventListener('click', light);
+$('againBtn').addEventListener('click', reset);
+
+$('copyBtn').addEventListener('click', () => {
+  const text = shareText(), msg = $('copyMsg'), fb = $('copyFallback');
+  const fallback = () => {
+    fb.value = text; fb.hidden = false; fb.focus(); fb.select();
+    msg.textContent = 'הטקסט מסומן. העתיקו אותו מכאן.';
+  };
+  try {
+    navigator.clipboard.writeText(text).then(() => { msg.textContent = 'הועתק. אפשר להדביק לחבר.'; }, fallback);
+  } catch { fallback(); }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S.mode === 'lit' && !wakeLock) {
+    try { navigator.wakeLock?.request('screen').then(l => { wakeLock = l; }).catch(() => {}); } catch {}
+  }
+});
+
+reset();
+</script>
+</body>
+</html>
