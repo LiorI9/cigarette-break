@@ -1,0 +1,12 @@
+{
+  "name": "cigarette-break",
+  "private": true,
+  "description": "הפסקת סיגריה – למי שלא מעשן, אבל לא מוותר על ההפסקה",
+  "scripts": {
+    "start": "node tests/serve.js",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
