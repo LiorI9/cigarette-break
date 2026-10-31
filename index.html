@@ -28,6 +28,28 @@ window.LOOK_FONTS = {
   link.href = LOOK_FONTS[look];
   document.head.appendChild(link);
 })();
+
+// Measurement: GA4 without cookies or any other browser storage (client_storage: 'none').
+// Calls always go to dataLayer, so tests can read them; Google's script loads only on the
+// live site, so local runs and CI never send anything. The page address is sent without
+// its #join=… part.
+window.GA_ID = 'G-V8062TEJE6';
+window.ANALYTICS_HOSTS = ['liori9.github.io'];
+window.dataLayer = window.dataLayer || [];
+window.gtag = function () { dataLayer.push(arguments); };
+gtag('js', new Date());
+gtag('config', GA_ID, {
+  client_storage: 'none',
+  allow_google_signals: false,
+  allow_ad_personalization_signals: false,
+  page_location: location.origin + location.pathname + location.search
+});
+if (ANALYTICS_HOSTS.indexOf(location.hostname) !== -1) {
+  var ga = document.createElement('script');
+  ga.async = true;
+  ga.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+  document.head.appendChild(ga);
+}
 </script>
 <style>
 /* Layout: one narrow poster column — masthead, look picker, smoking stage, meter, topic card, pack warning.
@@ -853,7 +875,12 @@ function dropAsh(from, to) {
   S.lastDrop = to;
 }
 
-function light(join) {
+// The only place that talks to the analytics provider. A blocked script must never break a break.
+function track(name, params) {
+  try { window.gtag('event', name, params); } catch {}
+}
+
+function light(join, method = 'button') {
   if (S.mode !== 'idle') return;
   S.mode = 'lit';
   if (join) {
@@ -882,11 +909,13 @@ function light(join) {
   $('litView').hidden = false;
   $('doneBar').hidden = true;
   for (let i = 0; i < 14; i++) puff(true);
+  track('break_lit', { method: join ? 'join' : method, look: currentLook() });
   try { navigator.wakeLock?.request('screen').then(l => { wakeLock = l; }).catch(() => {}); } catch {}
 }
 
 function finish() {
   S.mode = 'done';
+  track('break_done', { look: currentLook() });
   dropAsh(S.lastDrop, S.b);
   cig.classList.remove('lit');
   smokeUntil = performance.now() + 2500;
@@ -1028,7 +1057,7 @@ function endDrag(lit) {
   drag = null;
   match.classList.remove('dragging');
   match.style.transform = '';
-  if (lit) light();
+  if (lit) light(null, 'match');
   else {
     hint.textContent = 'כמעט. גררו את ראש הגפרור עד לקצה הסיגריה';
     setTimeout(() => { if (S.mode === 'idle') match.classList.remove('struck'); }, 450);
@@ -1037,9 +1066,9 @@ function endDrag(lit) {
 match.addEventListener('pointerup', () => endDrag(false));
 match.addEventListener('pointercancel', () => endDrag(false));
 
-cig.addEventListener('click', () => light());
-cig.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); light(); } });
-$('lightBtn').addEventListener('click', () => light());
+cig.addEventListener('click', () => light(null, 'tap'));
+cig.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); light(null, 'tap'); } });
+$('lightBtn').addEventListener('click', () => light(null, 'button'));
 $('againBtn').addEventListener('click', reset);
 $('inviteBtn').addEventListener('click', () => $('invite').hidden ? showInvite() : hideInvite());
 $('closeInvite').addEventListener('click', hideInvite);
